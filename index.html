@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ប្រព័ន្ធគ្រប់គ្រងវត្តមាន និងបង្កើត QR បុគ្គលិក (v2.4 Updated)</title>
+    <title>ប្រព័ន្ធគ្រប់គ្រងវត្តមាន (v2.5 Updated Schedule)</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,11 +12,14 @@
     <!-- Chart.js Library -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- HTML5 QR Code Scanner Library -->
-    <script src="https://unpkg.com/html5-qrcode"></script>
-
     <!-- QRCode Generator Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <!-- QR Code Scanner Library (for camera check-in) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+
+    <!-- jsPDF Library (for PDF export) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
         /* Hacker / Terminal Theme (Default) */
@@ -92,7 +95,6 @@
             --glow: none;
         }
 
-        /* NEW THEME 1: Amber Glow (Retro Amber CRT) */
         body.theme-amber {
             --font-family: 'Kantumruy Pro', 'Fira Code', monospace;
             --primary: #ffb000;
@@ -111,7 +113,6 @@
             --glow: 0 0 10px rgba(255, 176, 0, 0.5);
         }
 
-        /* NEW THEME 2: Nord Frost (Cool Scandinavian Dark Blue) */
         body.theme-nord {
             --font-family: 'Kantumruy Pro', 'Inter', sans-serif;
             --primary: #88c0d0;
@@ -130,7 +131,6 @@
             --glow: none;
         }
 
-        /* NEW THEME 3: Synthwave Neon */
         body.theme-synthwave {
             --font-family: 'Kantumruy Pro', 'Fira Code', monospace;
             --primary: #f72585;
@@ -149,7 +149,6 @@
             --glow: 0 0 8px rgba(76, 201, 240, 0.6);
         }
 
-        /* NEW THEME 4: Emerald Forest */
         body.theme-emerald {
             --font-family: 'Kantumruy Pro', 'Inter', sans-serif;
             --primary: #10b981;
@@ -166,6 +165,32 @@
             --radius: 10px;
             --shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
             --glow: none;
+        }
+
+        body.theme-ocean {
+            --primary: #0ea5e9; --primary-hover: #0284c7; --secondary: #38bdf8;
+            --warning: #facc15; --danger: #f43f5e; --bg-dark: #0f172a;
+            --card-bg: #1e293b; --text-main: #f1f5f9; --text-muted: #94a3b8;
+            --border-color: #334155; --input-bg: #0f172a; --radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); --glow: none;
+        }
+
+        /* New Theme: Sunset */
+        body.theme-sunset {
+            --primary: #f97316; --primary-hover: #ea580c; --secondary: #fb923c;
+            --warning: #eab308; --danger: #ef4444; --bg-dark: #262626;
+            --card-bg: #404040; --text-main: #fafaf9; --text-muted: #a8a29e;
+            --border-color: #525252; --input-bg: #303030; --radius: 8px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3); --glow: none;
+        }
+
+        /* New Theme: Royal Purple */
+        body.theme-royal {
+            --primary: #9333ea; --primary-hover: #7e22ce; --secondary: #c084fc;
+            --warning: #f59e0b; --danger: #e11d48; --bg-dark: #1e1b4b;
+            --card-bg: #312e81; --text-main: #ede9fe; --text-muted: #a78bfa;
+            --border-color: #4338ca; --input-bg: #1e1b4b; --radius: 16px;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); --glow: none;
         }
 
         html { scroll-behavior: smooth; }
@@ -425,15 +450,6 @@
             box-sizing: border-box;
         }
 
-        #qr-reader {
-            width: 100%;
-            border: 1px dashed var(--border-color);
-            border-radius: var(--radius);
-            background: var(--input-bg);
-            margin-bottom: 12px;
-            display: none;
-        }
-
         .id-card {
             background: linear-gradient(135deg, #1e293b, #0f172a);
             border: 2px solid var(--primary);
@@ -501,18 +517,36 @@
             transform: translateY(0);
         }
 
-                /* Add this to your style section */
+        /* Checkbox styling for days */
+        .days-checkboxes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+            background: var(--bg-dark);
+            padding: 8px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+        }
+        .days-checkboxes label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-bottom: 0;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
         @media (min-width: 768px) {
             #markArea {
                 display: grid;
-                grid-template-columns: repeat(2, 1fr); /* Creates 2 columns */
+                grid-template-columns: repeat(2, 1fr);
                 gap: 15px;
             }
             .student-row {
-                margin-bottom: 0; /* Clean up bottom margin for grid */
+                margin-bottom: 0;
             }
         }
-        
     </style>
 </head>
 <body class="theme-hacker">
@@ -525,9 +559,10 @@
         <ul class="navbar-menu">
             <li><a href="#section-analytics">📊 ស្ថិតិ & ក្រាហ្វ</a></li>
             <li><a href="#section-members" class="admin-only" style="display: none;">👥 បុគ្គលិក</a></li>
-            <li><a href="#section-mark">✍️ កត់ត្រា & QR Scanner</a></li>
+            <li><a href="#section-mark">✍️ កត់ត្រា</a></li>
             <li><a href="#section-daily">📄 របាយការណ៍</a></li>
             <li><a href="#section-monthly">📅 ប្រចាំខែ</a></li>
+            <li><a href="#section-leaderboard">🏆 ចំណាត់ថ្នាក់</a></li>
             <li><a href="#section-history">🔍 ប្រវត្តិ</a></li>
             <li><a href="#section-settings" class="admin-only" style="display: none;">⚙️ ការកំណត់</a></li>
         </ul>
@@ -538,11 +573,10 @@
     <!-- Header -->
     <div class="app-header">
         <div class="header-top">
-            <h1>✅ គ្រប់គ្រងវត្តមាន v2.4</h1>
+            <h1>✅ គ្រប់គ្រងវត្តមាន v2.5</h1>
             <div class="header-actions">
                 <button class="notif-btn" id="btnNotifPermission" onclick="requestNotificationPermission()">🔔 ការជូនដំណឹង</button>
 
-                <!-- Expanded Themes Selector -->
                 <select class="theme-select" onchange="changeAppTheme(this.value)">
                     <option value="theme-hacker">🟢 Hacker Matrix</option>
                     <option value="theme-amber">🟠 Solarized Amber</option>
@@ -552,6 +586,9 @@
                     <option value="theme-emerald">🌲 Emerald Forest</option>
                     <option value="theme-midnight">🌙 Midnight Dark</option>
                     <option value="theme-light">☀️ Minimal Light</option>
+                    <option value="theme-ocean">🌊 Ocean Deep</option>
+                    <option value="theme-sunset">🌅 Sunset Orange</option>
+                    <option value="theme-royal">👑 Royal Purple</option>
                 </select>
 
                 <button class="mode-toggle" id="modeSwitchBtn" onclick="toggleViewMode()">[!] មើលតែប៉ុណ្ណោះ</button>
@@ -584,11 +621,49 @@
         </div>
     </div>
 
-    <!-- Section 1: Manage Staff -->
+    <!-- Section 1: Manage Staff & Shifts -->
     <div class="card admin-only" id="section-members" style="display: none;">
-        <h3>១. គ្រប់គ្រងទិន្នន័យបុគ្គលិក</h3>
+        <h3>១. គ្រប់គ្រងទិន្នន័យបុគ្គលិក & កាលវិភាគម៉ោងចេញ</h3>
         <input type="number" id="stdId" placeholder="> លេខសម្គាល់ ID (ឧទាហរណ៍ 101)">
-        <input type="text" id="stdName" placeholder="> ឈ្មោះបុគ្គលិក">
+        <input type="text" id="stdName" placeholder="> ឈ្មោះបុគ្គលិក (ឧទាហរណ៍៖ តារា, មករា)">
+
+        <div style="border: 1px dashed var(--border-color); padding: 10px; margin-bottom: 12px; border-radius: var(--radius);">
+            <label style="color: var(--secondary);">👪 ព័ត៌មានទំនាក់ទំនងអាណាព្យាបាល (Parent/Guardian Contact)៖</label>
+            <div style="display: flex; gap: 10px;">
+                <div style="flex: 1;">
+                    <input type="text" id="stdParentName" placeholder="ឈ្មោះអាណាព្យាបាល" style="margin-bottom: 0;">
+                </div>
+                <div style="flex: 1;">
+                    <input type="tel" id="stdParentPhone" placeholder="លេខទូរស័ព្ទ (ឧ. 012345678)" style="margin-bottom: 0;">
+                </div>
+            </div>
+        </div>
+
+        <div style="border: 1px dashed var(--border-color); padding: 10px; margin-bottom: 12px; border-radius: var(--radius);">
+            <label style="color: var(--secondary);">⏰ កំណត់កាលវិភាគម៉ោងចេញ (Shift Schedule)៖</label>
+            <div style="display: flex; gap: 10px;">
+                <div style="flex: 1;">
+                    <label>ម៉ោងចេញធម្មតា (Default Out):</label>
+                    <input type="time" id="stdDefaultTimeOut" value="03:00">
+                </div>
+                <div style="flex: 1;">
+                    <label>ម៉ោងចេញពិសេស (Special Out):</label>
+                    <input type="time" id="stdSpecialTimeOut" value="23:00">
+                </div>
+            </div>
+            
+            <label>ជ្រើសរើសថ្ងៃដែលត្រូវចេញម៉ោងពិសេស៖</label>
+            <div class="days-checkboxes">
+                <label><input type="checkbox" class="special-day" value="1"> ចន្ទ</label>
+                <label><input type="checkbox" class="special-day" value="2"> អង្គារ</label>
+                <label><input type="checkbox" class="special-day" value="3"> ពុធ</label>
+                <label><input type="checkbox" class="special-day" value="4"> ព្រហស្បតិ៍</label>
+                <label><input type="checkbox" class="special-day" value="5"> សុក្រ</label>
+                <label><input type="checkbox" class="special-day" value="6"> សៅរ៍</label>
+                <label><input type="checkbox" class="special-day" value="0"> អាទិត្យ</label>
+            </div>
+        </div>
+
         <button onclick="addOrEditStudent()">💾 រក្សាទុកទិន្នន័យបុគ្គលិក</button>
 
         <div class="import-box">
@@ -601,17 +676,15 @@
         <div id="studentList"></div>
     </div>
 
-    <!-- Section 2: Mark Attendance & QR Scanner -->
+    <!-- Section 2: Mark Attendance -->
     <div class="card" id="section-mark">
-        <h3>២. កត់ត្រាវត្តមាន & ស្កែន QR Code</h3>
+        <h3>២. កត់ត្រាវត្តមាន</h3>
 
         <div class="btn-group" style="margin-bottom: 12px;">
-            <button onclick="toggleQRScanner()" class="btn-download" style="background:#0ea5e9;">📷 បើកស្កែនកាមេរ៉ា QR Code</button>
             <button onclick="markAllStatus('P')" class="admin-only-btn btn-small btn-export" style="display:none;">✔️ វត្តមានទាំងអស់ (Mark All P)</button>
             <button onclick="markAllStatus('A')" class="admin-only-btn btn-small btn-danger" style="display:none;">❌ អវត្តមានទាំងអស់ (Mark All A)</button>
+            <button onclick="openQRScanner()" class="admin-only-btn btn-small btn-folder" style="display:none;">📷 ស្កែន QR កត់ត្រា</button>
         </div>
-
-        <div id="qr-reader"></div>
 
         <label>ជ្រើសរើសកាលបរិច្ឆេទ៖</label>
         <input type="date" id="attDate">
@@ -641,6 +714,12 @@
 
         <div id="markArea"></div>
         <button onclick="saveAttendance()" class="admin-only-btn" style="display: none;">✅ រក្សាទុកវត្តមាន</button>
+
+        <div class="import-box admin-only-btn" style="display:none; margin-top: 16px;">
+            <label style="margin-bottom:8px;">📥 នាំចូលកត់ត្រាវត្តមានច្រើន (.CSV — Date,ID,Status,TimeIn,TimeOut):</label>
+            <input type="file" id="csvAttendanceInput" accept=".csv" style="margin-bottom: 8px;">
+            <button onclick="importAttendanceFromCSV()" class="btn-small btn-download">📥 ប្រតិបត្តិការនាំចូលវត្តមាន</button>
+        </div>
     </div>
 
     <!-- Section 3: Daily Report -->
@@ -657,6 +736,7 @@
         <div class="btn-group">
             <button onclick="saveTextFile()" class="btn-download">💾 ទាញយក (.TXT)</button>
             <button onclick="downloadCSVFile()" class="btn-export">📊 ទាញយក (.CSV)</button>
+            <button onclick="exportDailyReportPDF()" style="border-color:#e11d48; background:#e11d48; color:#fff;">📕 ទាញយក (.PDF)</button>
             <button onclick="window.print()" style="border-color:#5c8065; background:#5c8065; color:#fff;">🖨️ បោះពុម្ពរបាយការណ៍</button>
         </div>
         
@@ -678,7 +758,17 @@
 
         <div id="monthlyTableArea"></div>
         
-        <button onclick="downloadMonthlyCSV()" class="btn-export" style="margin-top: 10px;">📊 ទាញយក CSV ប្រចាំខែ</button>
+        <div class="btn-group" style="margin-top: 10px;">
+            <button onclick="downloadMonthlyCSV()" class="btn-export">📊 ទាញយក CSV ប្រចាំខែ</button>
+            <button onclick="exportMonthlyReportPDF()" style="border-color:#e11d48; background:#e11d48; color:#fff;">📕 ទាញយក PDF ប្រចាំខែ</button>
+        </div>
+    </div>
+
+    <!-- Section: Leaderboard -->
+    <div class="card" id="section-leaderboard">
+        <h3>🏆 ចំណាត់ថ្នាក់វត្តមាន (Attendance Leaderboard)</h3>
+        <label>ជ្រើសរើសខែសម្រាប់ចំណាត់ថ្នាក់ (ប្រើខែដូចផ្នែក "ប្រចាំខែ")៖</label>
+        <div id="leaderboardArea"></div>
     </div>
 
     <!-- Section 5: History Search -->
@@ -729,6 +819,10 @@
                     <option value="ON">បើក (Enabled)</option>
                 </select>
             </div>
+            <div>
+                <label>⚠️ ជូនដំណឹងពេលអវត្តមានលើសចំនួន (ក្នុងមួយខែ)៖</label>
+                <input type="number" id="absenceThreshold" value="3" min="1" onchange="saveReminderConfig()">
+            </div>
         </div>
 
         <div class="btn-group" style="margin-bottom: 12px;">
@@ -743,7 +837,7 @@
     <p style="text-align: center; font-size: 11px; opacity: 0.6;">បង្កើតដោយ៖ Ny Chandara</p>
 </div>
 
-<!-- Modal Display Card ជាមួយ QR Code -->
+<!-- Modal QR Code -->
 <div id="qrModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; justify-content:center; align-items:center;">
     <div class="card" style="width: 320px; text-align: center; background: var(--card-bg);">
         <div id="printableCard" class="id-card">
@@ -760,12 +854,19 @@
     </div>
 </div>
 
+<!-- Modal QR Scanner (Camera Check-in) -->
+<div id="qrScannerModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:2000; justify-content:center; align-items:center;">
+    <div class="card" style="width: 320px; text-align: center; background: var(--card-bg);">
+        <h4 style="margin-top:0; color: var(--secondary);">📷 ស្កែន QR ដើម្បីកត់ត្រា</h4>
+        <div id="qrReaderBox" style="width:100%;"></div>
+        <p id="qrScanStatus" style="font-size: 11px; opacity: 0.8; min-height: 16px;"></p>
+        <button onclick="closeQRScanner()" class="btn-danger" style="margin-top: 10px;">បិទ (Close)</button>
+    </div>
+</div>
+
 <script>
     let students = JSON.parse(localStorage.getItem('students')) || [];
     let records = JSON.parse(localStorage.getItem('records')) || [];
-
-    let html5QrcodeScanner = null;
-    let isScannerActive = false;
 
     let dailyChartInstance = null;
     let monthlyChartInstance = null;
@@ -828,6 +929,19 @@
         return 'A';
     }
 
+    // Logic គណនាម៉ោងចេញស្វ័យប្រវត្តិ តាមកាលវិភាគ
+    function getScheduledTimeOut(student, dateString) {
+        if (!student.schedule) return '03:00';
+        
+        const date = new Date(dateString);
+        const dayOfWeek = date.getDay(); // 0 = អាទិត្យ, 1 = ចន្ទ, 2 = អង្គារ, 3 = ពុធ, 4 = ព្រហស្បតិ៍, 5 = សុក្រ, 6 = សៅរ៍
+
+        if (student.schedule.specialDays && student.schedule.specialDays.includes(dayOfWeek.toString())) {
+            return student.schedule.specialTimeOut || '23:00';
+        }
+        return student.schedule.defaultTimeOut || '03:00';
+    }
+
     function showStudentQR(studentId, name) {
         const modal = document.getElementById('qrModal');
         const canvasDiv = document.getElementById('qrcodeCanvas');
@@ -854,70 +968,73 @@
         document.getElementById('qrModal').style.display = 'none';
     }
 
-    function toggleQRScanner() {
-        const qrContainer = document.getElementById('qr-reader');
+    let html5QrScanner = null;
 
-        if (isScannerActive) {
-            if (html5QrcodeScanner) {
-                html5QrcodeScanner.stop().then(() => {
-                    qrContainer.style.display = 'none';
-                    isScannerActive = false;
-                }).catch(err => console.error(err));
-            }
-        } else {
-            qrContainer.style.display = 'block';
-            html5QrcodeScanner = new Html5Qrcode("qr-reader");
-
-            html5QrcodeScanner.start(
-                { facingMode: "environment" },
-                { fps: 10, qrbox: { width: 220, height: 220 } },
-                onScanSuccess,
-                onScanFailure
-            ).then(() => {
-                isScannerActive = true;
-            }).catch(err => {
-                showToast("❌ មិនអាចបើកកាមេរ៉ាបានទេ៖ " + err);
-                qrContainer.style.display = 'none';
-            });
+    function openQRScanner() {
+        if (isReadOnly) return;
+        if (typeof Html5Qrcode === 'undefined') {
+            showToast('⚠️ មិនអាចផ្ទុកកម្មវិធីស្កែន QR បានទេ (គ្មានអ៊ីនធឺណិត)');
+            return;
         }
+        const modal = document.getElementById('qrScannerModal');
+        const statusEl = document.getElementById('qrScanStatus');
+        modal.style.display = 'flex';
+        statusEl.innerText = 'កំពុងបើកម៉ាស៊ីនថត...';
+
+        html5QrScanner = new Html5Qrcode("qrReaderBox");
+        html5QrScanner.start(
+            { facingMode: "environment" },
+            { fps: 10, qrbox: { width: 220, height: 220 } },
+            onQRScanSuccess,
+            () => {}
+        ).then(() => {
+            statusEl.innerText = 'សូមតម្រង់ QR Code របស់បុគ្គលិកមកកាមេរ៉ា';
+        }).catch(() => {
+            statusEl.innerText = '❌ មិនអាចចូលប្រើកាមេរ៉ាបានទេ។ សូមអនុញ្ញាតសិទ្ធិកាមេរ៉ា។';
+        });
     }
 
-    function onScanSuccess(decodedText) {
+    function closeQRScanner() {
+        const modal = document.getElementById('qrScannerModal');
+        if (html5QrScanner) {
+            html5QrScanner.stop().then(() => {
+                html5QrScanner.clear();
+                html5QrScanner = null;
+            }).catch(() => { html5QrScanner = null; });
+        }
+        modal.style.display = 'none';
+    }
+
+    function onQRScanSuccess(decodedText) {
+        const statusEl = document.getElementById('qrScanStatus');
         const studentId = parseInt(decodedText.trim());
         const student = students.find(s => s.id === studentId);
 
-        if (student) {
-            playBeep(1200, 'sine', 0.1);
-            const date = document.getElementById('attDate').value;
-            const now = new Date();
-            const timeIn = String(now.getHours()).padStart(2, '0') + ":" + String(now.getMinutes()).padStart(2, '0');
-
-            const index = records.findIndex(r => r.date === date && r.studentId === student.id);
-
-            if (index !== -1) {
-                if (records[index].timeIn && !records[index].timeOut) {
-                    records[index].timeOut = timeIn;
-                    showToast(`🚪 Check-out: [${student.name}] - ${timeIn}`);
-                } else {
-                    records[index].timeIn = timeIn;
-                    records[index].status = calculateStatusFromTime(timeIn);
-                    showToast(`✅ Check-in Updated: [${student.name}] - ${timeIn}`);
-                }
-            } else {
-                const computedStatus = calculateStatusFromTime(timeIn);
-                records.push({ date, studentId: student.id, status: computedStatus, timeIn, timeOut: '' });
-                showToast(`✅ Check-in Success: [${student.name}] - ${timeIn}`);
-            }
-
-            saveData();
-            renderMarkArea();
-        } else {
-            playBeep(300, 'square', 0.3);
-            showToast(`⚠️ មិនพบបុគ្គលិក ID #${decodedText} ទេ!`);
+        if (!student) {
+            statusEl.innerText = `❌ រកមិនឃើញបុគ្គលិកលេខ ID #${decodedText}`;
+            playBeep(300, 'square', 0.2);
+            return;
         }
-    }
 
-    function onScanFailure(error) {}
+        const date = document.getElementById('attDate').value;
+        const now = new Date();
+        const timeIn = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+        const status = calculateStatusFromTime(timeIn);
+        const timeOut = getScheduledTimeOut(student, date);
+
+        const index = records.findIndex(r => r.date === date && r.studentId === studentId);
+        if (index !== -1) {
+            records[index] = { date, studentId, status, timeIn, timeOut: records[index].timeOut || timeOut };
+        } else {
+            records.push({ date, studentId, status, timeIn, timeOut });
+        }
+
+        saveData();
+        playBeep(1000, 'sine', 0.15);
+        statusEl.innerText = `✅ បានកត់ត្រា៖ ${student.name} (${timeIn})`;
+        renderMarkArea();
+        generateReport();
+    }
 
     function handleManualTimeChange(studentId) {
         const timeInVal = document.getElementById(`timeIn-${studentId}`)?.value;
@@ -1008,9 +1125,11 @@
     function saveReminderConfig() {
         const timeVal = document.getElementById('reminderTime').value;
         const toggleVal = document.getElementById('reminderToggle').value;
+        const thresholdVal = document.getElementById('absenceThreshold')?.value || '3';
 
         localStorage.setItem('reminder_time', timeVal);
         localStorage.setItem('reminder_toggle', toggleVal);
+        localStorage.setItem('absence_threshold', thresholdVal);
 
         startReminderChecker();
     }
@@ -1018,11 +1137,32 @@
     function loadReminderConfig() {
         const savedTime = localStorage.getItem('reminder_time') || "08:00";
         const savedToggle = localStorage.getItem('reminder_toggle') || "OFF";
+        const savedThreshold = localStorage.getItem('absence_threshold') || "3";
 
         document.getElementById('reminderTime').value = savedTime;
         document.getElementById('reminderToggle').value = savedToggle;
+        if (document.getElementById('absenceThreshold')) {
+            document.getElementById('absenceThreshold').value = savedThreshold;
+        }
 
         startReminderChecker();
+    }
+
+    function checkAbsenceThresholds() {
+        const threshold = parseInt(localStorage.getItem('absence_threshold') || '3');
+        const monthStr = new Date().toISOString().substring(0, 7);
+        const monthRecords = records.filter(r => r.date.startsWith(monthStr));
+
+        students.forEach(s => {
+            const absentCount = monthRecords.filter(r => r.studentId === s.id && r.status === 'A').length;
+            const alertKey = `absence_alerted_${s.id}_${monthStr}`;
+
+            if (absentCount >= threshold && !sessionStorage.getItem(alertKey)) {
+                showToast(`⚠️ ${s.name} (#${s.id}) បានអវត្តមាន ${absentCount} ដងក្នុងខែនេះ!`);
+                sendBrowserNotification("⚠️ ការជូនដំណឹងអវត្តមានលើសកំណត់", `${s.name} បានអវត្តមាន ${absentCount} ដងក្នុងខែនេះ។`);
+                sessionStorage.setItem(alertKey, '1');
+            }
+        });
     }
 
     function startReminderChecker() {
@@ -1143,23 +1283,38 @@
         if (isReadOnly) return;
         const id = parseInt(document.getElementById('stdId').value);
         const name = document.getElementById('stdName').value.trim();
+        const parentName = document.getElementById('stdParentName')?.value.trim() || '';
+        const parentPhone = document.getElementById('stdParentPhone')?.value.trim() || '';
+        const defaultTimeOut = document.getElementById('stdDefaultTimeOut').value;
+        const specialTimeOut = document.getElementById('stdSpecialTimeOut').value;
+
+        const specialDays = Array.from(document.querySelectorAll('.special-day:checked')).map(cb => cb.value);
 
         if (!id || !name) {
             showToast('សូមបំពេញព័ត៌មានដែលខ្វះ!');
             return;
         }
 
+        const schedule = { defaultTimeOut, specialTimeOut, specialDays };
+
         const existing = students.find(s => s.id === id);
         if (existing) {
             existing.name = name;
+            existing.schedule = schedule;
+            existing.parentName = parentName;
+            existing.parentPhone = parentPhone;
             showToast('បានធ្វើបច្ចុប្បន្នភាពទិន្នន័យបុគ្គលិក!');
         } else {
-            students.push({ id, name });
+            students.push({ id, name, schedule, parentName, parentPhone });
             showToast('បានបន្ថែមបុគ្គលិកថ្មីទៅក្នុងប្រព័ន្ធ!');
         }
 
         document.getElementById('stdId').value = '';
         document.getElementById('stdName').value = '';
+        document.getElementById('stdParentName').value = '';
+        document.getElementById('stdParentPhone').value = '';
+        document.querySelectorAll('.special-day').forEach(cb => cb.checked = false);
+
         saveData();
         renderStudents();
         renderMarkArea();
@@ -1189,9 +1344,17 @@
                 if (parts.length >= 2) {
                     const id = parseInt(parts[0].trim());
                     const name = parts[1].replace(/"/g, '').trim();
+                    const parentName = (parts[2] || '').replace(/"/g, '').trim();
+                    const parentPhone = (parts[3] || '').replace(/"/g, '').trim();
 
                     if (id && name && !students.some(s => s.id === id)) {
-                        students.push({ id, name });
+                        students.push({ 
+                            id, 
+                            name, 
+                            parentName,
+                            parentPhone,
+                            schedule: { defaultTimeOut: "03:00", specialTimeOut: "23:00", specialDays: [] } 
+                        });
                         addedCount++;
                     }
                 }
@@ -1207,12 +1370,74 @@
         reader.readAsText(file);
     }
 
+    function importAttendanceFromCSV() {
+        if (isReadOnly) return;
+        const fileInput = document.getElementById('csvAttendanceInput');
+        const file = fileInput.files[0];
+
+        if (!file) {
+            showToast('មិនទាន់បានជ្រើសរើសឯកសារ CSV ទេ!');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const text = e.target.result;
+            const lines = text.split('\n');
+            let addedCount = 0, updatedCount = 0;
+
+            lines.forEach((line, idx) => {
+                if (idx === 0 || !line.trim()) return;
+                const parts = line.split(',');
+                if (parts.length >= 3) {
+                    const date = parts[0].trim();
+                    const studentId = parseInt(parts[1].trim());
+                    let status = parts[2].trim().toUpperCase();
+                    const timeIn = (parts[3] || '').trim();
+                    const timeOut = (parts[4] || '').trim();
+
+                    if (!['P','L','A','V'].includes(status)) status = 'P';
+                    if (!date || !studentId) return;
+
+                    const index = records.findIndex(r => r.date === date && r.studentId === studentId);
+                    if (index !== -1) {
+                        records[index] = { date, studentId, status, timeIn, timeOut };
+                        updatedCount++;
+                    } else {
+                        records.push({ date, studentId, status, timeIn, timeOut });
+                        addedCount++;
+                    }
+                }
+            });
+
+            saveData();
+            renderMarkArea();
+            generateReport();
+            generateMonthlyReport();
+            viewStudentHistory();
+            checkAbsenceThresholds();
+            showToast(`ជោគជ័យ៖ បន្ថែម ${addedCount} កត់ត្រាថ្មី, ធ្វើបច្ចុប្បន្នភាព ${updatedCount}`);
+            fileInput.value = '';
+        };
+        reader.readAsText(file);
+    }
+
     function editStudent(id) {
         if (isReadOnly) return;
         const student = students.find(s => s.id === id);
         if (student) {
             document.getElementById('stdId').value = student.id;
             document.getElementById('stdName').value = student.name;
+            document.getElementById('stdParentName').value = student.parentName || '';
+            document.getElementById('stdParentPhone').value = student.parentPhone || '';
+
+            if (student.schedule) {
+                document.getElementById('stdDefaultTimeOut').value = student.schedule.defaultTimeOut || '03:00';
+                document.getElementById('stdSpecialTimeOut').value = student.schedule.specialTimeOut || '23:00';
+                document.querySelectorAll('.special-day').forEach(cb => {
+                    cb.checked = student.schedule.specialDays && student.schedule.specialDays.includes(cb.value);
+                });
+            }
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     }
@@ -1315,7 +1540,10 @@
             const existing = records.find(r => r.date === date && r.studentId === s.id);
             const status = existing ? existing.status : 'P';
             const timeIn = existing ? existing.timeIn || '' : '';
-            const timeOut = existing ? existing.timeOut || '' : '';
+            
+            // គណនាម៉ោងចេញស្វ័យប្រវត្តិប្រសិនបើមិនទាន់បានកត់ត្រា
+            const scheduledOut = getScheduledTimeOut(s, date);
+            const timeOut = existing ? (existing.timeOut || scheduledOut) : scheduledOut;
 
             const disabledAttr = isReadOnly ? 'disabled' : '';
 
@@ -1497,6 +1725,67 @@
         area.innerHTML = tableHTML;
 
         renderMonthlyBarChart(monthVal, monthRecords);
+        renderLeaderboard(monthVal, monthRecords);
+    }
+
+    function renderLeaderboard(monthVal, monthRecords) {
+        const area = document.getElementById('leaderboardArea');
+        if (!area) return;
+
+        if (!monthVal || students.length === 0) {
+            area.innerHTML = '<small style="color:gray;">មិនមានទិន្នន័យសម្រាប់បង្ហាញចំណាត់ថ្នាក់។</small>';
+            return;
+        }
+
+        const ranking = students.map(s => {
+            const sRecs = monthRecords.filter(r => r.studentId === s.id);
+            let p = 0, l = 0, a = 0, v = 0;
+            sRecs.forEach(r => {
+                if (r.status === 'P') p++;
+                if (r.status === 'L') l++;
+                if (r.status === 'A') a++;
+                if (r.status === 'V') v++;
+            });
+            const total = sRecs.length;
+            const rate = total > 0 ? Math.round(((p + l) / total) * 100) : 0;
+            return { id: s.id, name: s.name, present: p, late: l, absent: a, leave: v, total, rate };
+        }).filter(r => r.total > 0);
+
+        ranking.sort((a, b) => b.rate - a.rate || b.present - a.present);
+
+        if (ranking.length === 0) {
+            area.innerHTML = '<small style="color:gray;">មិនទាន់មានកត់ត្រាវត្តមានសម្រាប់ខែនេះទេ។</small>';
+            return;
+        }
+
+        const medals = ['🥇', '🥈', '🥉'];
+        let html = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>ចំណាត់ថ្នាក់</th>
+                        <th>ឈ្មោះ</th>
+                        <th>អត្រាវត្តមាន</th>
+                        <th>ថ្ងៃវត្តមាន</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        ranking.forEach((r, idx) => {
+            const rankLabel = medals[idx] || `#${idx + 1}`;
+            html += `
+                <tr>
+                    <td><b>${rankLabel}</b></td>
+                    <td>${r.name} <small style="opacity:0.6;">(#${r.id})</small></td>
+                    <td><b style="color:var(--primary);">${r.rate}%</b></td>
+                    <td>${r.present + r.late} / ${r.total}</td>
+                </tr>
+            `;
+        });
+
+        html += '</tbody></table>';
+        area.innerHTML = html;
     }
 
     function downloadMonthlyCSV() {
@@ -1526,6 +1815,77 @@
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+    }
+
+    function exportDailyReportPDF() {
+        if (typeof window.jspdf === 'undefined') {
+            showToast('⚠️ មិនអាចផ្ទុកកម្មវិធី PDF បានទេ (គ្មានអ៊ីនធឺណិត)');
+            return;
+        }
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const date = document.getElementById('reportDate').value;
+        const reportText = generateReportText();
+
+        doc.setFontSize(14);
+        doc.text(`Daily Attendance Report - ${date}`, 14, 18);
+        doc.setFontSize(10);
+
+        const lines = doc.splitTextToSize(reportText, 180);
+        doc.text(lines, 14, 30);
+
+        doc.save(`Attendance_Report_${date}.pdf`);
+        showToast('✅ បានទាញយករបាយការណ៍ជា PDF!');
+    }
+
+    function exportMonthlyReportPDF() {
+        if (typeof window.jspdf === 'undefined') {
+            showToast('⚠️ មិនអាចផ្ទុកកម្មវិធី PDF បានទេ (គ្មានអ៊ីនធឺណិត)');
+            return;
+        }
+        const monthVal = document.getElementById('reportMonth').value;
+        if (!monthVal) return;
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const monthRecords = records.filter(r => r.date.startsWith(monthVal));
+
+        doc.setFontSize(14);
+        doc.text(`Monthly Attendance Summary - ${monthVal}`, 14, 18);
+        doc.setFontSize(9);
+
+        let y = 30;
+        doc.text("ID", 14, y);
+        doc.text("Name", 30, y);
+        doc.text("Present", 110, y);
+        doc.text("Late", 135, y);
+        doc.text("Absent", 155, y);
+        doc.text("Leave", 178, y);
+        y += 6;
+
+        const sortedStudents = [...students].sort((a, b) => a.id - b.id);
+        sortedStudents.forEach(s => {
+            const sRecs = monthRecords.filter(r => r.studentId === s.id);
+            let p = 0, l = 0, a = 0, v = 0;
+            sRecs.forEach(r => {
+                if (r.status === 'P') p++;
+                if (r.status === 'L') l++;
+                if (r.status === 'A') a++;
+                if (r.status === 'V') v++;
+            });
+
+            if (y > 280) { doc.addPage(); y = 20; }
+            doc.text(String(s.id), 14, y);
+            doc.text(s.name, 30, y);
+            doc.text(String(p), 115, y);
+            doc.text(String(l), 138, y);
+            doc.text(String(a), 158, y);
+            doc.text(String(v), 180, y);
+            y += 6;
+        });
+
+        doc.save(`Monthly_Report_${monthVal}.pdf`);
+        showToast('✅ បានទាញយករបាយការណ៍ប្រចាំខែជា PDF!');
     }
 
     function saveTextFile() {
