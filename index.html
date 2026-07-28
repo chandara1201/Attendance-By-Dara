@@ -380,6 +380,7 @@
 
         input:disabled, select:disabled { opacity: 0.5; cursor: not-allowed; }
 
+        /* Improved Button Styles */
         button {
             position: relative;
             overflow: hidden;
@@ -393,16 +394,30 @@
             font-weight: 700;
             font-family: inherit;
             cursor: pointer;
-            transition: all 0.2s ease;
+            /* Added smooth transition for all effects */
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
             box-shadow: var(--shadow);
+            /* Prevents text selection during rapid clicking */
+            user-select: none;
         }
 
-        button:hover { opacity: 0.9; box-shadow: var(--glow); transform: translateY(-2px); }
-        button:active { transform: translateY(1px); }
+        /* Hover state: lift up and brighten */
+        button:hover { 
+            opacity: 0.9; 
+            box-shadow: var(--glow); 
+            transform: translateY(-3px); /* Subtle lift */
+            filter: brightness(1.1);
+        }
+
+        /* Active state: press down */
+        button:active { 
+            transform: translateY(0px) scale(0.98); /* Press and shrink slightly */
+            box-shadow: none;
+        }
 
         button.btn-folder { border-color: #a855f7; background-color: #a855f7; color: #fff; }
         button.btn-export { border-color: var(--primary); background-color: var(--primary); color: #000; }
@@ -555,6 +570,10 @@
 
 <!-- Navigation Bar -->
 <nav class="navbar">
+    <!-- បន្ថែម Logo នៅទីនេះ -->
+    <div style="padding-left: 10px;">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSDh0_1M-Zvo3t2fpBiIE2WNocUo0GjOWPU15AOhSoh4g&s=10" alt="Logo" style="height: 32px; width: 32px; border-radius: 50%; border: 1px solid var(--primary);">
+    </div>
     <div class="navbar-container">
         <ul class="navbar-menu">
             <li><a href="#section-analytics">📊 ស្ថិតិ & ក្រាហ្វ</a></li>
@@ -573,10 +592,13 @@
     <!-- Header -->
     <div class="app-header">
         <div class="header-top">
-            <h1>✅ គ្រប់គ្រងវត្តមាន v2.5</h1>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <!-- Logo ក្នុង Header -->
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSDh0_1M-Zvo3t2fpBiIE2WNocUo0GjOWPU15AOhSoh4g&s=10" alt="Logo" style="height: 40px; width: 40px; border-radius: 8px; border: 2px solid var(--secondary);">
+                <h1>✅ គ្រប់គ្រងវត្តមាន v2.5</h1>
+            </div>
             <div class="header-actions">
                 <button class="notif-btn" id="btnNotifPermission" onclick="requestNotificationPermission()">🔔 ការជូនដំណឹង</button>
-
                 <select class="theme-select" onchange="changeAppTheme(this.value)">
                     <option value="theme-hacker">🟢 Hacker Matrix</option>
                     <option value="theme-amber">🟠 Solarized Amber</option>
@@ -590,7 +612,6 @@
                     <option value="theme-sunset">🌅 Sunset Orange</option>
                     <option value="theme-royal">👑 Royal Purple</option>
                 </select>
-
                 <button class="mode-toggle" id="modeSwitchBtn" onclick="toggleViewMode()">[!] មើលតែប៉ុណ្ណោះ</button>
             </div>
         </div>
@@ -929,12 +950,11 @@
         return 'A';
     }
 
-    // Logic គណនាម៉ោងចេញស្វ័យប្រវត្តិ តាមកាលវិភាគ
     function getScheduledTimeOut(student, dateString) {
         if (!student.schedule) return '03:00';
         
         const date = new Date(dateString);
-        const dayOfWeek = date.getDay(); // 0 = អាទិត្យ, 1 = ចន្ទ, 2 = អង្គារ, 3 = ពុធ, 4 = ព្រហស្បតិ៍, 5 = សុក្រ, 6 = សៅរ៍
+        const dayOfWeek = date.getDay(); 
 
         if (student.schedule.specialDays && student.schedule.specialDays.includes(dayOfWeek.toString())) {
             return student.schedule.specialTimeOut || '23:00';
@@ -1541,7 +1561,6 @@
             const status = existing ? existing.status : 'P';
             const timeIn = existing ? existing.timeIn || '' : '';
             
-            // គណនាម៉ោងចេញស្វ័យប្រវត្តិប្រសិនបើមិនទាន់បានកត់ត្រា
             const scheduledOut = getScheduledTimeOut(s, date);
             const timeOut = existing ? (existing.timeOut || scheduledOut) : scheduledOut;
 
@@ -2187,6 +2206,7 @@
 
         resultDiv.innerHTML = html;
     }
+    
 
     loadReminderConfig();
     applyViewMode();
